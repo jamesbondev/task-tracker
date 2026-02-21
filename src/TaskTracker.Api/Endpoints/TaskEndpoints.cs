@@ -15,7 +15,7 @@ public static class TaskEndpoints
 
             if (!string.IsNullOrWhiteSpace(tag))
             {
-                //var normalizedTag = tag.Trim().ToLowerInvariant();
+                var normalizedTag = tag.Trim().ToLowerInvariant();
                 tasks = tasks.Where(t => t.Tags.Contains(normalizedTag));
             }
 
