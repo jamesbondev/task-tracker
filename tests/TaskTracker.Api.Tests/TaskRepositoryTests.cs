@@ -226,4 +226,131 @@ public class TaskRepositoryTests
         task.Tags.Should().NotBeNull();
         task.Tags.Should().BeEmpty();
     }
+
+    [Fact]
+    public void TaskItem_DueDate_DefaultsToNull()
+    {
+        var task = new TaskItem { Title = "No due date" };
+
+        task.DueDate.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithDueDate_StoresDueDate()
+    {
+        var dueDate = DateTime.UtcNow.AddDays(7);
+        var newTask = new TaskItem
+        {
+            Title = "Task with due date",
+            DueDate = dueDate
+        };
+
+        var created = await _repository.CreateAsync(newTask);
+
+        created.DueDate.Should().Be(dueDate);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_UpdatesDueDateOnExistingTask()
+    {
+        var task = await _repository.GetByIdAsync(1);
+        task.Should().NotBeNull();
+
+        var newDueDate = DateTime.UtcNow.AddDays(14);
+        task!.DueDate = newDueDate;
+        var updated = await _repository.UpdateAsync(task);
+
+        updated.Should().NotBeNull();
+        updated!.DueDate.Should().Be(newDueDate);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_CanClearDueDate()
+    {
+        var task = await _repository.GetByIdAsync(2);
+        task.Should().NotBeNull();
+        task!.DueDate.Should().NotBeNull();
+
+        task.DueDate = null;
+        var updated = await _repository.UpdateAsync(task);
+
+        updated.Should().NotBeNull();
+        updated!.DueDate.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SeededTasks_HaveDueDates()
+    {
+        var task1 = await _repository.GetByIdAsync(1);
+        var task2 = await _repository.GetByIdAsync(2);
+        var task3 = await _repository.GetByIdAsync(3);
+
+        task1!.DueDate.Should().NotBeNull();
+        task2!.DueDate.Should().NotBeNull();
+        task3!.DueDate.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetAllAsync_OverdueTasks_ReturnsOnlyIncompleteTasksPastDueDate()
+    {
+        var tasks = (await _repository.GetAllAsync()).ToList();
+
+        var overdue = tasks
+            .Where(t => t.DueDate.HasValue
+                         && t.DueDate.Value < DateTime.UtcNow
+                         && t.Status != TaskItemStatus.Done)
+            .ToList();
+
+        // Task 1 is Done (not overdue even though past due), Task 3 is Todo and past due
+        overdue.Should().HaveCount(1);
+        overdue[0].Title.Should().Be("Write unit tests");
+    }
+
+    [Fact]
+    public async Task GetAllAsync_OverdueTasks_ExcludesCompletedTasks()
+    {
+        var tasks = (await _repository.GetAllAsync()).ToList();
+
+        var overdue = tasks
+            .Where(t => t.DueDate.HasValue
+                         && t.DueDate.Value < DateTime.UtcNow
+                         && t.Status != TaskItemStatus.Done)
+            .ToList();
+
+        overdue.Should().NotContain(t => t.Status == TaskItemStatus.Done);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_OverdueTasks_ExcludesTasksWithFutureDueDate()
+    {
+        var tasks = (await _repository.GetAllAsync()).ToList();
+
+        var overdue = tasks
+            .Where(t => t.DueDate.HasValue
+                         && t.DueDate.Value < DateTime.UtcNow
+                         && t.Status != TaskItemStatus.Done)
+            .ToList();
+
+        overdue.Should().NotContain(t => t.Title == "Implement API endpoints");
+    }
+
+    [Fact]
+    public async Task GetAllAsync_OverdueTasks_ExcludesTasksWithNoDueDate()
+    {
+        var newTask = new TaskItem
+        {
+            Title = "No due date task",
+            Status = TaskItemStatus.Todo
+        };
+        await _repository.CreateAsync(newTask);
+
+        var tasks = (await _repository.GetAllAsync()).ToList();
+        var overdue = tasks
+            .Where(t => t.DueDate.HasValue
+                         && t.DueDate.Value < DateTime.UtcNow
+                         && t.Status != TaskItemStatus.Done)
+            .ToList();
+
+        overdue.Should().NotContain(t => t.Title == "No due date task");
+    }
 }
