@@ -22,6 +22,18 @@ public static class TaskEndpoints
             return Results.Ok(tasks);
         });
 
+        group.MapGet("/overdue", async (ITaskRepository repository) =>
+        {
+            var tasks = await repository.GetAllAsync();
+            var overdue = tasks
+                .Where(t => t.DueDate.HasValue
+                             && t.DueDate.Value < DateTime.UtcNow
+                             && t.Status != TaskItemStatus.Done)
+                .OrderBy(t => t.DueDate)
+                .ToList();
+            return Results.Ok(overdue);
+        });
+
         group.MapGet("/tags", async (ITaskRepository repository) =>
         {
             var tasks = await repository.GetAllAsync();
@@ -62,6 +74,7 @@ public static class TaskEndpoints
             existing.Title = task.Title;
             existing.Description = task.Description;
             existing.Status = task.Status;
+            existing.DueDate = task.DueDate;
             existing.Tags = task.Tags;
 
             var updated = await repository.UpdateAsync(existing);
