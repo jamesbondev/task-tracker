@@ -18,6 +18,7 @@ public class InMemoryTaskRepository : ITaskRepository
                 Title = "Set up project structure",
                 Description = "Create the initial solution and project layout",
                 Status = TaskItemStatus.Done,
+                Priority = TaskPriority.High,
                 CreatedAt = DateTime.UtcNow.AddDays(-3),
                 Tags = [TagUtility.CommonTags.Setup, TagUtility.CommonTags.Infrastructure]
             },
@@ -26,7 +27,9 @@ public class InMemoryTaskRepository : ITaskRepository
                 Title = "Implement API endpoints",
                 Description = "Build the REST API for task management",
                 Status = TaskItemStatus.InProgress,
+                Priority = TaskPriority.Critical,
                 CreatedAt = DateTime.UtcNow.AddDays(-2),
+                DueDate = DateTime.UtcNow.AddDays(5),
                 Tags = [TagUtility.CommonTags.Backend, TagUtility.CommonTags.Api]
             },
             new TaskItem
@@ -34,7 +37,9 @@ public class InMemoryTaskRepository : ITaskRepository
                 Title = "Write unit tests",
                 Description = "Add tests for the repository and endpoints",
                 Status = TaskItemStatus.Todo,
+                Priority = TaskPriority.Medium,
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
+                DueDate = DateTime.UtcNow.AddDays(10),
                 Tags = [TagUtility.CommonTags.Testing, TagUtility.CommonTags.Backend]
             }
         };
