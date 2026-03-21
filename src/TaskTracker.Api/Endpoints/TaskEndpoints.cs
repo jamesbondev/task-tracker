@@ -74,6 +74,33 @@ public static class TaskEndpoints
             return deleted ? Results.NoContent() : Results.NotFound();
         });
 
+        group.MapGet("/search", async (string q, ITaskRepository repository) =>
+        {
+            var tasks = await repository.GetAllAsync();
+            var results = tasks.Where(t =>
+                t.Title.Contains(q) ||
+                (t.Description != null && t.Description.Contains(q)) ||
+                t.Tags.Any(tag => tag.Contains(q)));
+            return Results.Ok(results);
+        });
+
+        group.MapGet("/overdue", async (ITaskRepository repository) =>
+        {
+            var tasks = await repository.GetAllAsync();
+            var overdue = tasks.Where(t => t.IsOverdue()).OrderBy(t => t.DueDate);
+            return Results.Ok(overdue);
+        });
+
+        group.MapPatch("/{id:int}/priority", async (int id, int priority, ITaskRepository repository) =>
+        {
+            var task = await repository.GetByIdAsync(id);
+            if (task is null) return Results.NotFound();
+
+            task.Priority = priority;
+            var updated = await repository.UpdateAsync(task);
+            return Results.Ok(updated);
+        });
+
         return group;
     }
 }
