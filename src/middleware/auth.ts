@@ -21,3 +21,4 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 export function generateToken(userId: string) {
     return jwt.sign({ userId }, SECRET, { expiresIn: '24h' });
 }
+
