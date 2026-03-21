@@ -6,7 +6,8 @@ public class TaskItem
     public required string Title { get; set; }
     public string? Description { get; set; }
     public TaskItemStatus Status { get; set; }
-    public int Priority { get; set; } = 0;
+    public int Priority { get; set; }
+    public string? Assignee { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public DateTime? DueDate { get; set; }
